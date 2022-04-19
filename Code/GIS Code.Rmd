@@ -35,6 +35,15 @@ Install the necessary packages:
 install.packages("tidyverse", repos = "http://cran.us.r-project.org")
 ```
 
+```{r}
+update.packages("tidyverse", repos = "http://cran.us.r-project.org")
+update.packages("Rcurl", repos = "http://cran.us.r-project.org")
+update.packages("rjson", repos = "http://cran.us.r-project.org")
+update.packages("sf", repos = "http://cran.us.r-project.org")
+update.packages("rosm", repos = "http://cran.us.r-project.org")
+update.packages("ggspatial", repos = "http://cran.us.r-project.org")
+```
+
 - RCurl and rjson is required to access the data from SABAP2 using as API.  
 ```{r step 2b, results='hide', warning=FALSE}
 install.packages("RCurl", repos = "http://cran.us.r-project.org")
