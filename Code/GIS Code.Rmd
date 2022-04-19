@@ -1,0 +1,92 @@
+---
+title: "GIS Code"
+author: "Rebecca Irons (IRNREB001)"
+date: '2022-04-19'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## GIS Assignment
+
+#### Section 1: Install and Load Packages 
+#### Section 2: Tidy SAFRING Data
+#### Section 3: Tidy Geographic Pentad Data
+#### Section 4: Creating the Map 
+
+This document provides step-by-step instructions to create a map of the localities of where 
+malachite sunbirds have been ringed across South Africa, from east by KwaZulu-Natal to west. The data for this species is accessed from SAFRING using an API. For more details on the SAFRING database, see <https://safring.birdmap.africa/>. 
+
+### Section 1
+
+In this section, we will install and load the necessary packages to read in the data from the SAFRING database, tidy the data and use GIS tools to create a map. 
+
+First, the workspace must be clean. 
+```{r step 1}
+rm(list = ls())
+```
+
+Install the necessary packages: 
+
+- Tidyverse is required to manipulate the data: 
+```{r step 2a, results='hide', warning=FALSE}
+install.packages("tidyverse", repos = "http://cran.us.r-project.org")
+```
+
+- RCurl and rjson is required to access the data from SABAP2 using as API.  
+```{r step 2b, results='hide', warning=FALSE}
+install.packages("RCurl", repos = "http://cran.us.r-project.org")
+
+install.packages("rjson", repos = "http://cran.us.r-project.org")
+```
+
+- sf is required to work with vector data to create a map
+```{r step 2c, results='hide', warning=FALSE}
+
+install.packages("sf", repos = "http://cran.us.r-project.org")
+
+```
+
+
+The packages from the tidyverse have to be loaded. These packages are:
+
+```{r step 3a, results='hide', warning=FALSE, message=FALSE}
+
+library(dplyr)
+
+library(ggplot2)
+
+library(broom)
+
+```
+
+
+The packages required for loading in the data from the SAFRING website are:
+```{r step 3 b, results='hide',warning=FALSE, message=FALSE}
+
+library(RCurl)
+
+library(rjson)
+```
+
+The packages required for working with the vector data are: 
+```{r step 3c, results='hide', warning=FALSE, message=FALSE}
+
+library(sf)
+```
+
+
+Using an API, access the SAFRING database and load the data for your focal species. 
+
+```{r step 4, results='hide'}
+SPP = 751
+ringing_data <- read.csv(paste('https://api.birdmap.africa/safring/species/records_list/',SPP,'?format=csv',sep=""))
+```
+
+
+### Section 2
+
+
+
