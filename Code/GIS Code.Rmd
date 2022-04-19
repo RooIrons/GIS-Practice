@@ -251,4 +251,94 @@ ringing_data$active_moult <- ifelse(ringing_data$Moult>0&ringing_data$Moult<5555
 ```
 
 
+### Section 3
 
+The geographic pentads in the SAFRING database contain spatial information (latitude and longitude). However, to work with this spatial information, latitude and longitude values contained within the pentad object need to be separated to tidy the data and work with the "sf" package. 
+
+The functions that we need to get sections of the pentads for mapping.
+```{r,step 15, results='hide'}
+
+left = function(text, num_char) {substr(text, 1, num_char)}
+mid = function(text, start_num, num_char) {  substr(text, start_num, start_num + num_char - 1)}
+```
+
+We then have to tidy the pentad data to pull out rough latitude and longitude values. 
+```{r, step 16, results='hide'}
+
+ringing_data$Lat <- as.numeric(left(ringing_data$pentad, 2)) +  as.numeric(mid(ringing_data$pentad, 3, 2))/60
+ringing_data$Latitude <- ifelse(mid(ringing_data$pentad,5,1)=="_", ringing_data$Lat*-1, ringing_data$Lat)
+ringing_data$Longitude <- as.numeric(mid(ringing_data$pentad, 6,2)) +  as.numeric(mid(ringing_data$pentad, 8, 2))/60
+```
+
+We now have to objects called Latitude and Longitude in the ringing data for the malachite sunbird so that we can map the localities of this species across South Africa. This brings us to Section 4. 
+
+
+### Section 4
+
+Firstly, we have to coarsely split the spatial data by longitude. For the purposes of the map that we wish to produce for the project, we do not need exact longitude and latitude values. We need to split the values of latitude and longitude into 'east' and 'west' because we want to visualize which localities of the malachite sunbird - or another focal species that stradles both regions - are in the 'east' and which are in the 'west'. 
+
+```{r step 17, results='hide'}
+
+ringing_data$West_East <- ifelse(ringing_data$Longitude<27, "West", "East")
+```
+
+Let's check the class of the variable containing the spatial data. 
+```{r step 18}
+class(ringing_data$West_East)
+```
+
+We can see that this variable is a 'character'. Therefore, we need to change this variable to a data frame. 
+
+```{r step 19, results='hide'}
+Locations <- as.data.frame(ringing_data$West_East)
+```
+
+
+```{r}
+class(ringing_data)
+```
+
+
+```{r step 20}
+class(Locations)
+```
+There we go! That is better. 
+
+Now, this data frame has to be converted to a spatial object. We have to convert this object 'Locations' of class = sf. The coordinate reference system (CRS) also have to be defined. The CRS should be defined to be Geographic WGS84 using the EPSG code (4326).  
+
+```{r step 21}
+
+Locations1 <- st_as_sf(ringing_data, coords = c("Longitude", "Latitude"), crs = 4326)
+```
+
+```{r}
+class(Locations1)
+```
+```{r}
+names(Locations1)
+```
+```{r}
+
+ggplot(ringing_data, aes(Longitude, Latitude, colour = West_East))+geom_point()
+```
+
+```{r}
+install.packages("rosm", repos = "http://cran.us.r-project.org")
+```
+
+```{r}
+install.packages("ggspatial", repos = "http://cran.us.r-project.org")
+```
+
+
+```{r}
+library(rosm)
+library(ggspatial)
+```
+
+
+```{r}
+ggplot() + 
+  annotation_map_tile(type = "osm", progress = "none", zoomin = -1) + 
+  geom_sf(data=Locations1, aes(colour = West_East))
+```
