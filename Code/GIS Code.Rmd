@@ -21,9 +21,9 @@ malachite sunbirds have been ringed across South Africa, from east by KwaZulu-Na
 
 ### Section 1
 
-In this section, we will install and load the necessary packages to read in the data from the SAFRING database, tidy the data and use GIS tools to create a map. 
+##### In this section, we will install and load the necessary packages to read in the data from the SAFRING database, tidy the data and use GIS tools to create a map. 
 
-First, the workspace must be clean. 
+First, the work space must be clean. 
 ```{r step 1}
 rm(list = ls())
 ```
@@ -33,15 +33,6 @@ Install the necessary packages:
 - Tidyverse is required to manipulate the data: 
 ```{r step 2a, results='hide', warning=FALSE, message=FALSE}
 install.packages("tidyverse", repos = "http://cran.us.r-project.org")
-```
-
-```{r}
-update.packages("tidyverse", repos = "http://cran.us.r-project.org")
-update.packages("Rcurl", repos = "http://cran.us.r-project.org")
-update.packages("rjson", repos = "http://cran.us.r-project.org")
-update.packages("sf", repos = "http://cran.us.r-project.org")
-update.packages("rosm", repos = "http://cran.us.r-project.org")
-update.packages("ggspatial", repos = "http://cran.us.r-project.org")
 ```
 
 - RCurl and rjson is required to access the data from SABAP2 using as API.  
@@ -111,7 +102,7 @@ ringing_data <- read.csv(paste('https://api.birdmap.africa/safring/species/recor
 
 ### Section 2
 
-The species data accessed from the SAFRING database need to be tidied first before we look at the spatial data. This is so that the dataset from which we are drawing the pentad data contains only observations that are sensical. These same steps have been followed in the data management assignment for tidying the SAFRING data. 
+##### The species data accessed from the SAFRING database need to be tidied first before we look at the spatial data. This is so that the dataset from which we are drawing the pentad data contains only observations that are sensical. These same steps have been followed in the data management assignment for tidying the SAFRING data. 
 
 The ages that are recorded for the birds in the database must be numeric and the juveniles must be filtered out from the adults. We will only be working with adults. 
 
@@ -276,7 +267,7 @@ ringing_data$active_moult <- ifelse(ringing_data$Moult>0&ringing_data$Moult<5555
 
 ### Section 3
 
-The geographic pentads in the SAFRING database contain spatial information (latitude and longitude). However, to work with this spatial information, latitude and longitude values contained within the pentad object need to be separated to tidy the data and work with the "sf" package. 
+##### The geographic pentads in the SAFRING database contain spatial information (latitude and longitude). However, to work with this spatial information, latitude and longitude values contained within the pentad object need to be separated to tidy the data and work with the "sf" package. 
 
 The functions that we need to get sections of the pentads for mapping.
 ```{r,step 15, results='hide'}
@@ -326,7 +317,7 @@ names(Locations)
 
 ### Section 4
 
-The purpose of this section is to create a map of southern Africa as a basemap to the localities of malachite sunbirds ringed across South Africa. We want to split these localities according to whether they are considered 'east' or 'west'. This is important because we want to be able to link different moult and breeding patterns in nectarivores across South Africa. Therefore, we need to visually differentiate between east and west so that we can draw conclusions about resource availability and these different patterns. 
+##### The purpose of this section is to create a map of southern Africa as a basemap to the localities of malachite sunbirds ringed across South Africa. We want to split these localities according to whether they are considered 'east' or 'west'. This is important because we want to be able to link different moult and breeding patterns in nectarivores across South Africa. Therefore, we need to visually differentiate between east and west so that we can draw conclusions about resource availability and these different patterns. 
 
 First, lets create a map of the locations in space separated according to their west/east positions. 
 ```{r step 22}
@@ -339,5 +330,5 @@ We could make this map look even better by creating a basemap to these latitude 
 
 ggplot() + 
   annotation_map_tile(type = "osm", progress = "none", zoomin = -1) + 
-  geom_sf(data=Locations1, aes(colour = West_East))
+  geom_sf(data=Locations, aes(colour = West_East))
 ```
