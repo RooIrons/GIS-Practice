@@ -30,26 +30,26 @@ rm(list = ls())
 
 Install the necessary packages: 
 
-- Tidyverse is required to manipulate the data: 
+- 'Tidyverse' is required to manipulate the data: 
 ```{r step 2a, results='hide', warning=FALSE, message=FALSE}
 install.packages("tidyverse", repos = "http://cran.us.r-project.org")
 ```
 
-- RCurl and rjson is required to access the data from SABAP2 using as API.  
+- 'RCurl' and 'rjson' is required to access the data from SABAP2 using as API.  
 ```{r step 2b, results='hide', warning=FALSE, message=FALSE}
 install.packages("RCurl", repos = "http://cran.us.r-project.org")
 
 install.packages("rjson", repos = "http://cran.us.r-project.org")
 ```
 
-- sf is required to work with vector data to create a map
+- 'sf' is required to work with vector data to create a map
 ```{r step 2c, results='hide', warning=FALSE, message=FALSE}
 
 install.packages("sf", repos = "http://cran.us.r-project.org")
 
 ```
 
-- to create the basemap for the map of longitudes and latitudes of localities of the malachite sunbird, we need to install two packages. 
+- to create the basemap for the map of longitudes and latitudes of localities of the malachite sunbird, we need to install two packages: 
 
 ```{r step 2d, results='hide', warning=FALSE, message=FALSE}
 install.packages("rosm", repos = "http://cran.us.r-project.org")
@@ -92,7 +92,7 @@ library(ggspatial)
 ```
 
 
-Using an API, access the SAFRING database and load the data for your focal species. 
+Using an API, access the SAFRING database and load the data for your focal species. The species codes can be changed here (the 'SPP' object) to change the species of focus.  
 
 ```{r step 4, results='hide'}
 SPP = 751
@@ -223,7 +223,7 @@ ringing_data <- filter(ringing_data, masscheck!='error', tarsuscheck!='error',he
 
 ```
 
-We need to range check against SABAP2 data, if there are SABAP2 records for the SAFRING ringing locations of the chosen species.This step will remove ringing locations that are completely wrong, such as those that are in the middle of the ocean. 
+We need to range check against SABAP2 data, if there are SABAP2 records for the SAFRING ringing locations of the chosen species.This step will remove ringing locations that are completely wrong, such as those that are in the middle of the ocean. This step also makes it easy to then remove 'NA' values, which compromise one's ability to produce the basemap as errors tend to pop up with missing values. 
 ```{r step 11b, results='hide'}
 sabap2url <- paste('https://api.birdmap.africa/sabap2/v2/cards/species/info/',SPP,'?format=csv',sep="")
 sabap2data <- read.csv(sabap2url)
@@ -281,7 +281,7 @@ temp$active_moult <- ifelse(temp$Moult>0&temp$Moult<5555555555, 1, 0)
 
 ##### The geographic pentads in the SAFRING database contain spatial information (latitude and longitude). However, to work with this spatial information, latitude and longitude values contained within the pentad object need to be separated to tidy the data and work with the "sf" package. 
 
-The functions that we need to get sections of the pentads for mapping.
+There are two functions that we need to get sections of the pentads for mapping.
 ```{r,step 15, results='hide'}
 
 left = function(text, num_char) {substr(text, 1, num_char)}
@@ -296,7 +296,7 @@ temp$Latitude <- ifelse(mid(temp$pentad,5,1)=="_", temp$Lat*-1, temp$Lat)
 temp$Longitude <- as.numeric(mid(temp$pentad, 6,2)) +  as.numeric(mid(temp$pentad, 8, 2))/60
 ```
 
-We now have to objects called Latitude and Longitude in the ringing data for the malachite sunbird so that we can map the localities of this species across South Africa. 
+We now have two objects called Latitude and Longitude in the ringing data for the malachite sunbird so that we can map the localities of this species across South Africa. 
 
 We need to then coarsely split the spatial data by longitude, creating an additional column with the locations split into east and west for the malachite sunbird.  
 
@@ -329,7 +329,7 @@ names(Locations)
 
 ### Section 4
 
-##### The purpose of this section is to create a map of southern Africa as a basemap to the localities of malachite sunbirds ringed across South Africa. We want to split these localities according to whether they are considered 'east' or 'west'. This is important because we want to be able to link different moult and breeding patterns in nectarivores across South Africa. Therefore, we need to visually differentiate between east and west so that we can draw conclusions about resource availability and these different patterns. 
+##### The purpose of this section is to create a map of southern Africa as a basemap to the localities of malachite sunbirds ringed across South Africa. We want to split these localities according to whether they are considered 'east' or 'west'. This is important because we want to be able to link different moult and breeding patterns in nectarivores across South Africa to geospatial variability in resources. Therefore, we need to visually differentiate between east and west so that we can draw conclusions about resource availability and these different patterns. 
 
 First, lets create a map of the locations in space separated according to their west/east positions. 
 ```{r step 22}
@@ -337,7 +337,9 @@ First, lets create a map of the locations in space separated according to their 
 ggplot(temp, aes(Longitude, Latitude, colour = West_East))+geom_point()
 ```
 
-We could make this map look even better by creating a basemap to these latitude and longitude values. We can then have a clearer picture of how the localities are spread across South Africa. 
+We could make this map look even better by creating a basemap to these latitude and longitude values. We can then have a clearer picture of how the ringing localities of Malachite Sunbirds are spread across South Africa. 
+
+The'zoomin = 'can be removed or changed to 0 to edit the resolution of the map. 
 ```{r step 23}
 
 ggplot() + 
