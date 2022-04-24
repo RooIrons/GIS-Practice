@@ -36,7 +36,7 @@ install.packages("tidyverse", repos = "http://cran.us.r-project.org")
 ```
 
 - RCurl and rjson is required to access the data from SABAP2 using as API.  
-```{r step 2b, results='hide', warning=FALSE}
+```{r step 2b, results='hide', warning=FALSE, message=FALSE}
 install.packages("RCurl", repos = "http://cran.us.r-project.org")
 
 install.packages("rjson", repos = "http://cran.us.r-project.org")
@@ -98,6 +98,7 @@ Using an API, access the SAFRING database and load the data for your focal speci
 SPP = 751
 ringing_data <- read.csv(paste('https://api.birdmap.africa/safring/species/records_list/',SPP,'?format=csv',sep=""))
 ```
+
 
 
 ### Section 2
@@ -216,24 +217,35 @@ ringing_data$tailcheck[is.na(ringing_data$tailcheck)] <- "OK"
 
 The object containing the data for the focal species then needs to be redefined with the error filtered out. 
 
-```{r step 11, results='hide'}
+```{r step 11a, results='hide'}
 
 ringing_data <- filter(ringing_data, masscheck!='error', tarsuscheck!='error',headcheck!='error',culmencheck!='error',tailcheck!='error')
 
 ```
 
+We need to range check against SABAP2 data, if there are SABAP2 records for the SAFRING ringing locations of the chosen species.This step will remove ringing locations that are completely wrong, such as those that are in the middle of the ocean. 
+```{r step 11b, results='hide'}
+sabap2url <- paste('https://api.birdmap.africa/sabap2/v2/cards/species/info/',SPP,'?format=csv',sep="")
+sabap2data <- read.csv(sabap2url)
+
+Spp_pentads <- unique(sabap2data$Pentad)
+temp <- filter(ringing_data, pentad%in%Spp_pentads)
+```
+
+
+
 The column containing the brood patch information then needs to be cleaned so that the correct, and tidied data is plotted in Section 3. 
 ```{r step 12, results='hide', warning=FALSE}
 
-ringing_data$BP <-  as.numeric(ringing_data$Brood_patch) 
+temp$BP <-  as.numeric(temp$Brood_patch) 
 
-ringing_data$BP <-  ifelse(ringing_data$BP >0 , 1, ringing_data$BP)
+temp$BP <-  ifelse(temp$BP >0 , 1, temp$BP)
 
-ringing_data$BP <-  ifelse(ringing_data$BP <0 , 0, ringing_data$BP)
+temp$BP <-  ifelse(temp$BP <0 , 0, temp$BP)
 
-ringing_data$BP <-  ifelse(ringing_data$Brood_patch %in% c("1.0", "2.0", "y", "BP", "Brood Patch") , 1, ringing_data$BP)
+temp$BP <-  ifelse(temp$Brood_patch %in% c("1.0", "2.0", "y", "BP", "Brood Patch") , 1, temp$BP)
 
-ringing_data$BP <-  ifelse(ringing_data$Brood_patch %in% c("-1.0", "n", "N", "no") , 0, ringing_data$BP)
+temp$BP <-  ifelse(temp$Brood_patch %in% c("-1.0", "n", "N", "no") , 0, temp$BP)
 
 ```
 
@@ -241,13 +253,13 @@ ringing_data$BP <-  ifelse(ringing_data$Brood_patch %in% c("-1.0", "n", "N", "no
 The date information that is recorded in the SABAP2 database has to be cleaned and organized as well. 
 ```{r step 13, results='hide'}
 
-ringing_data$Startdate1 <- as.Date(ringing_data$Startdate, "%Y-%m-%d")
+temp$Startdate1 <- as.Date(temp$Startdate, "%Y-%m-%d")
 
-ringing_data$Month <- format(ringing_data$Startdate1, "%m") 
+temp$Month <- format(temp$Startdate1, "%m") 
 
-ringing_data$Month <- as.numeric(ringing_data$Month)
+temp$Month <- as.numeric(temp$Month)
 
-ringing_data$Year <- format(ringing_data$Startdate1, "%Y") 
+temp$Year <- format(temp$Startdate1, "%Y") 
 
 ```
 
@@ -255,13 +267,13 @@ ringing_data$Year <- format(ringing_data$Startdate1, "%Y")
 Next, the moult data must be numeric and filtered to remove NA values, which imply that active moult is not occurring. 
 ```{r step 14, results='hide', warning=FALSE}
 
-ringing_data$Moult <- as.numeric(ringing_data$Moult)
+temp$Moult <- as.numeric(temp$Moult)
 
-ringing_data <- filter(ringing_data, !is.na(Moult))
+temp <- filter(temp, !is.na(Moult))
 
-ringing_data$gender <- ifelse(ringing_data$Sex==1, "Male", ifelse(ringing_data$Sex==2, "Female", NA))
+temp$gender <- ifelse(temp$Sex==1, "Male", ifelse(temp$Sex==2, "Female", NA))
 
-ringing_data$active_moult <- ifelse(ringing_data$Moult>0&ringing_data$Moult<5555555555, 1, 0)
+temp$active_moult <- ifelse(temp$Moult>0&temp$Moult<5555555555, 1, 0)
 ```
 
 
@@ -279,9 +291,9 @@ mid = function(text, start_num, num_char) {  substr(text, start_num, start_num +
 We then have to tidy the pentad data to pull out rough latitude and longitude values. 
 ```{r, step 16, results='hide'}
 
-ringing_data$Lat <- as.numeric(left(ringing_data$pentad, 2)) +  as.numeric(mid(ringing_data$pentad, 3, 2))/60
-ringing_data$Latitude <- ifelse(mid(ringing_data$pentad,5,1)=="_", ringing_data$Lat*-1, ringing_data$Lat)
-ringing_data$Longitude <- as.numeric(mid(ringing_data$pentad, 6,2)) +  as.numeric(mid(ringing_data$pentad, 8, 2))/60
+temp$Lat <- as.numeric(left(temp$pentad, 2)) +  as.numeric(mid(temp$pentad, 3, 2))/60
+temp$Latitude <- ifelse(mid(temp$pentad,5,1)=="_", temp$Lat*-1, temp$Lat)
+temp$Longitude <- as.numeric(mid(temp$pentad, 6,2)) +  as.numeric(mid(temp$pentad, 8, 2))/60
 ```
 
 We now have to objects called Latitude and Longitude in the ringing data for the malachite sunbird so that we can map the localities of this species across South Africa. 
@@ -290,19 +302,19 @@ We need to then coarsely split the spatial data by longitude, creating an additi
 
 ```{r step 17, results='hide'}
 
-ringing_data$West_East <- ifelse(ringing_data$Longitude<27, "West", "East")
+temp$West_East <- ifelse(temp$Longitude<27, "West", "East")
 ```
 
 Let's check the class of the ringing data. We need this data set to be a data frame so that we can convert these data into spatial data. 
 ```{r step 18}
-class(ringing_data)
+class(temp)
 ```
 
 Now, this data frame has to be converted to a spatial object. We have to convert this object 'Locations' of class = sf. The coordinate reference system (CRS) also have to be defined. The CRS should be defined to be Geographic WGS84 using the EPSG code (4326).  
 
 ```{r step 19, results='hide'}
 
-Locations <- st_as_sf(ringing_data, coords = c("Longitude", "Latitude"), crs = 4326)
+Locations <- st_as_sf(temp, coords = c("Longitude", "Latitude"), crs = 4326)
 ```
 
 To check if this data frame has been correctly converted, we need to use the class() function. 
@@ -322,7 +334,7 @@ names(Locations)
 First, lets create a map of the locations in space separated according to their west/east positions. 
 ```{r step 22}
 
-ggplot(ringing_data, aes(Longitude, Latitude, colour = West_East))+geom_point()
+ggplot(temp, aes(Longitude, Latitude, colour = West_East))+geom_point()
 ```
 
 We could make this map look even better by creating a basemap to these latitude and longitude values. We can then have a clearer picture of how the localities are spread across South Africa. 
